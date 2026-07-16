@@ -1,0 +1,987 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>从“教会答题”到“学会解决问题” · 地理教学讲座</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;0,600;0,700;0,800;0,900;1,400;1,700&amp;family=Source+Serif+4:ital,opsz,wght@0,8..60,300;0,8..60,400;0,8..60,500;0,8..60,600;1,8..60,400&amp;family=IBM+Plex+Mono:wght@300;400;500;600&amp;family=Noto+Serif+SC:wght@300;400;500;600;700;900&amp;family=Noto+Sans+SC:wght@300;400;500;700;900&amp;display=swap" rel="stylesheet">
+<style>
+  :root{
+    /* ============ 主题色：森林墨 ============
+       切换主题:从 references/themes.md 复制对应的 :root 块
+       整体替换这几行(--ink / --ink-rgb / --paper / --paper-rgb)
+       其他地方散落的 rgba() 都走 var(--ink-rgb) / var(--paper-rgb),无需逐处改 */
+    --ink:#1a2e1f;
+    --ink-rgb:26,46,31;
+    --paper:#f5f1e8;
+    --paper-rgb:245,241,232;
+    --paper-tint:#ece7da;
+    --ink-tint:#253d2c;
+
+    /* ============ 字体(跨主题固定) ============ */
+    --mono:"IBM Plex Mono",ui-monospace,monospace;
+    --serif-en:"Playfair Display","Source Serif 4",Georgia,serif;
+    --serif-body-en:"Source Serif 4",Georgia,serif;
+    --serif-zh:"Noto Serif SC",source-han-serif-sc,serif;
+    --sans-zh:"Noto Sans SC",source-han-sans-sc,sans-serif;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  *{letter-spacing:0!important}
+  html,body{width:100%;height:100%;overflow:hidden;background:var(--ink);color:var(--paper);font-family:var(--sans-zh);-webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility}
+
+  /* ============ WebGL 双背景 ============ */
+  canvas.bg{position:fixed;inset:0;width:100vw;height:100vh;z-index:0;display:block;transition:opacity 1.2s ease}
+  canvas#bg-light{opacity:0}
+  canvas#bg-dark{opacity:1}
+  body.light-bg canvas#bg-light{opacity:1}
+  body.light-bg canvas#bg-dark{opacity:0}
+
+  /* ============ Deck 容器 + 翻页 ============ */
+  /* width: NSLIDES * 100vw，会在 JS 里动态矫正 */
+  #deck{position:fixed;inset:0;width:10000vw;height:100vh;display:flex;flex-wrap:nowrap;transition:transform .9s cubic-bezier(.77,0,.175,1);z-index:10;will-change:transform}
+  .slide{width:100vw;height:100vh;flex:0 0 100vw;position:relative;padding:6vh 6vw 10vh 6vw;display:flex;flex-direction:column;overflow:hidden}
+  .slide.light{color:var(--ink)}
+  .slide.dark{color:var(--paper)}
+
+  /* 默认页：遮罩较厚，保证文字可读 */
+  .slide::before{content:"";position:absolute;inset:0;z-index:-1;pointer-events:none;transition:background .7s ease}
+  .slide.light::before{background:rgba(var(--paper-rgb),.78);backdrop-filter:blur(3px)}
+  .slide.dark::before{background:rgba(var(--ink-rgb),.78);backdrop-filter:blur(3px)}
+  /* Hero 页：遮罩大幅降低，让 WebGL 背景明显透出 */
+  .slide.hero.light::before{background:rgba(var(--paper-rgb),.16);backdrop-filter:none}
+  .slide.hero.dark::before{background:rgba(var(--ink-rgb),.12);backdrop-filter:none}
+  /* Hero 页顶底微弱渐隐，保证 chrome/foot 区域可读 */
+  .slide.hero::after{content:"";position:absolute;inset:0;z-index:-1;pointer-events:none}
+  .slide.hero.light::after{background:linear-gradient(180deg,rgba(var(--paper-rgb),.28) 0%,rgba(var(--paper-rgb),0) 14%,rgba(var(--paper-rgb),0) 86%,rgba(var(--paper-rgb),.28) 100%)}
+  .slide.hero.dark::after{background:linear-gradient(180deg,rgba(var(--ink-rgb),.32) 0%,rgba(var(--ink-rgb),0) 14%,rgba(var(--ink-rgb),0) 86%,rgba(var(--ink-rgb),.32) 100%)}
+
+  /* ============ Magazine chrome：顶部 meta + 底部 foot ============ */
+  .chrome{display:flex;justify-content:space-between;align-items:flex-start;font-family:var(--mono);font-size:12px;letter-spacing:.18em;text-transform:uppercase;opacity:.7}
+  .chrome .left,.chrome .right{display:flex;gap:2.4em;align-items:center}
+  .chrome .sep{width:40px;height:1px;background:currentColor;opacity:.4}
+  .foot{margin-top:auto;display:flex;justify-content:space-between;align-items:flex-end;font-family:var(--mono);font-size:12px;letter-spacing:.14em;text-transform:uppercase;opacity:.55}
+  .foot .title{font-family:var(--serif-zh);font-weight:400;letter-spacing:.05em;text-transform:none;opacity:.75;font-size:13px}
+
+  .tag{display:inline-block;font-family:var(--mono);font-size:11px;letter-spacing:.24em;text-transform:uppercase;padding:6px 14px;border:1px solid currentColor;opacity:.85}
+  .rule{width:100%;height:1px;background:currentColor;opacity:.25;margin:3vh 0}
+  .rule.v{width:1px;height:100%;margin:0}
+
+  /* ============ 字体规则 ============
+     · 衬线（Noto Serif SC / Playfair）：大标题、重点金句、数字
+     · 非衬线（Noto Sans SC）：正文描述、body、补充说明
+     · 等宽（IBM Plex Mono）：kicker、meta 小标签、foot 右侧
+  */
+  .kicker{font-family:var(--mono);font-size:12px;letter-spacing:.3em;text-transform:uppercase;opacity:.6;margin-bottom:2.6vh}
+  .display{font-family:var(--serif-en);font-weight:700;font-size:11vw;line-height:.92;letter-spacing:-.025em}
+  .display-zh{font-family:var(--serif-zh);font-weight:700;font-size:7.8vw;line-height:1.04;letter-spacing:-.005em}
+  .h1-zh{font-family:var(--serif-zh);font-weight:700;font-size:4.6vw;line-height:1.12;letter-spacing:-.005em}
+  .h2-zh{font-family:var(--serif-zh);font-weight:600;font-size:3.2vw;line-height:1.2;letter-spacing:0}
+  .h3-zh{font-family:var(--serif-zh);font-weight:500;font-size:1.9vw;line-height:1.35}
+  .body-zh{font-family:var(--sans-zh);font-weight:400;font-size:max(15px,1.22vw);line-height:1.75;opacity:.82;letter-spacing:.01em}
+  .body-serif{font-family:var(--serif-zh);font-weight:400;font-size:max(15px,1.3vw);line-height:1.65;opacity:.88}
+  .lead{font-family:var(--serif-zh);font-weight:400;font-size:1.9vw;line-height:1.4;opacity:.85}
+  .meta{font-family:var(--mono);font-size:max(11px,.88vw);letter-spacing:.16em;text-transform:uppercase;opacity:.6}
+  .big-num{font-family:var(--serif-en);font-weight:800;font-size:10vw;line-height:.85;letter-spacing:-.03em;font-feature-settings:"tnum"}
+  .mid-num{font-family:var(--serif-en);font-weight:700;font-size:5.5vw;line-height:.88;letter-spacing:-.02em;font-feature-settings:"tnum"}
+  .ghost{font-family:var(--serif-en);font-weight:900;font-size:34vw;line-height:.8;opacity:.06;letter-spacing:-.04em;position:absolute;font-feature-settings:"tnum"}
+  em{font-style:italic;font-family:var(--serif-en)}
+  .en{font-family:var(--serif-en);font-style:italic;font-weight:500}
+
+  /* ============ 布局工具 ============ */
+  .col{display:flex;flex-direction:column;gap:2.4vh}
+  .row{display:flex;align-items:center;gap:3vw}
+  .grid-6{display:grid;grid-template-columns:repeat(3,1fr);grid-template-rows:repeat(2,1fr);gap:4vw 6vw;flex:1;align-content:center;padding:2vh 0}
+  .grid-9{display:grid;grid-template-columns:repeat(3,1fr);grid-template-rows:repeat(3,1fr);gap:3vh 4vw;flex:1;align-content:center}
+  .grid-4{display:grid;grid-template-columns:repeat(2,1fr);grid-template-rows:repeat(2,1fr);gap:4vh 6vw;flex:1;align-content:center}
+  .grid-3{display:grid;grid-template-columns:repeat(3,1fr);gap:4vw;flex:1;align-content:center}
+  .split{display:grid;grid-template-columns:1fr 1fr;gap:4vw;flex:1;align-items:center}
+  .split-55{display:grid;grid-template-columns:55fr 45fr;gap:5vw;flex:1;align-items:stretch}
+  .fill{flex:1}
+  .center{align-items:center;justify-content:center;text-align:center}
+  .bottom-left{position:absolute;left:6vw;bottom:9vh;max-width:50vw}
+  .bottom-right{position:absolute;right:6vw;bottom:9vh;max-width:50vw;text-align:right}
+  .top-right{position:absolute;right:6vw;top:6vh;text-align:right}
+
+  /* ============ Stat（数字矩阵） ============ */
+  .stat{display:flex;flex-direction:column;gap:1vh;align-items:flex-start}
+  .stat .n{font-family:var(--serif-en);font-weight:800;font-size:8vw;line-height:.88;letter-spacing:-.03em;font-feature-settings:"tnum"}
+  .stat .l{font-family:var(--sans-zh);font-size:max(13px,1.05vw);opacity:.7;margin-top:1vh;font-weight:400;line-height:1.5}
+  .stat .m{font-family:var(--mono);font-size:10px;letter-spacing:.22em;text-transform:uppercase;opacity:.5;margin-bottom:.2vh}
+
+  /* ============ Callout（引用框） ============ */
+  .callout{padding:3vh 2.4vw;border-left:3px solid currentColor;position:relative;font-family:var(--serif-zh);font-size:max(15px,1.2vw);line-height:1.55;opacity:.92}
+  .slide.light .callout{background:rgba(var(--ink-rgb),.05)}
+  .slide.dark .callout{background:rgba(var(--paper-rgb),.06)}
+  .callout .cite{display:block;margin-top:1.6vh;font-family:var(--mono);font-size:11px;letter-spacing:.2em;text-transform:uppercase;opacity:.6}
+  .callout .q-big{font-family:var(--serif-zh);font-weight:600;font-size:max(17px,1.6vw);line-height:1.42}
+
+  /* ============ Platform（平台卡） ============ */
+  .plat{display:flex;flex-direction:column;justify-content:flex-end;padding:2vh 0;border-top:1px solid currentColor;border-color:rgba(127,127,127,.35)}
+  .plat .name{font-family:var(--serif-zh);font-weight:700;font-size:1.8vw;margin-bottom:.6vh}
+  .plat .nb{font-family:var(--serif-en);font-weight:700;font-size:3.2vw;letter-spacing:-.02em;line-height:1;font-feature-settings:"tnum"}
+  .plat .sub{font-family:var(--mono);font-size:10px;letter-spacing:.18em;text-transform:uppercase;opacity:.55;margin-top:.6vh}
+  .plat .fill{font-family:var(--sans-zh);font-weight:300;font-size:2.4vw;opacity:.28;letter-spacing:-.01em;line-height:1}
+
+  /* ============ Rowline（表格行） ============ */
+  .rowline{display:grid;grid-template-columns:1fr 2fr 1fr;gap:2vw;padding:2.2vh 0;border-top:1px solid currentColor;align-items:center;border-color:rgba(127,127,127,.25)}
+  .rowline:last-child{border-bottom:1px solid currentColor;border-color:rgba(127,127,127,.25)}
+  .rowline .k{font-family:var(--serif-zh);font-weight:700;font-size:1.7vw}
+  .rowline .v{font-family:var(--sans-zh);font-weight:400;font-size:max(14px,1.2vw);opacity:.85;line-height:1.55}
+  .rowline .m{font-family:var(--mono);font-size:11px;letter-spacing:.2em;text-transform:uppercase;opacity:.6;justify-self:end}
+
+  /* ============ Pillar（支柱卡片） ============ */
+  .pillar{display:flex;flex-direction:column;gap:1.8vh}
+  .pillar .ic{font-family:var(--serif-en);font-style:italic;font-size:2.6vw;opacity:.45;font-weight:400}
+  .pillar .ic svg{width:2.8vw;height:2.8vw;stroke-width:1.2;opacity:.7}
+  .pillar .t{font-family:var(--serif-zh);font-weight:700;font-size:2.4vw;line-height:1.1}
+  .pillar .d{font-family:var(--sans-zh);font-weight:400;font-size:max(14px,1.1vw);opacity:.76;line-height:1.6}
+
+  /* ============ Signature / Highlight ============ */
+  .sign{font-family:var(--serif-en);font-style:italic;font-weight:500;font-size:2vw;opacity:.7}
+  .hi{position:relative;display:inline}
+  .slide.dark .hi::after{content:"";position:absolute;left:-.1em;right:-.1em;bottom:-.05em;height:.28em;background:rgba(var(--paper-rgb),.15);z-index:-1}
+  .slide.light .hi::after{content:"";position:absolute;left:-.1em;right:-.1em;bottom:-.05em;height:.28em;background:rgba(var(--ink-rgb),.08);z-index:-1}
+
+  /* ============ Icons（Lucide via CDN） ============ */
+  .ico{width:1em;height:1em;display:inline-block;vertical-align:-.12em;stroke:currentColor;fill:none;stroke-width:1.4;stroke-linecap:round;stroke-linejoin:round;flex-shrink:0}
+  .ico-lg,.ico-md,.ico-sm{fill:none;stroke:currentColor;stroke-linecap:round;stroke-linejoin:round}
+  .ico-lg{width:2.6vw;height:2.6vw;stroke-width:1.2;display:inline-block}
+  .ico-md{width:1.8vw;height:1.8vw;stroke-width:1.3;display:inline-block;vertical-align:-.4em}
+  .ico-sm{width:1.1vw;height:1.1vw;stroke-width:1.4;display:inline-block;vertical-align:-.15em;opacity:.7}
+
+  /* ============ 图片占位（虚线框，提示设计师位置） ============ */
+  .img-slot{border:1.5px dashed rgba(127,127,127,.4);display:flex;align-items:center;justify-content:center;flex-direction:column;gap:1vh;padding:2vh 2vw;font-family:var(--mono);font-size:10px;letter-spacing:.28em;text-transform:uppercase;opacity:.55;position:relative;aspect-ratio:16/9;width:100%;max-height:56vh;margin-inline:auto;box-sizing:border-box}
+  .img-slot::before{content:"";position:absolute;inset:8px;border:1px solid currentColor;opacity:.2}
+  .img-slot .plus{font-size:2vw;font-weight:300;opacity:.5;letter-spacing:0}
+  .img-slot .label{position:relative;z-index:2;text-align:center}
+  .img-slot.r-4x3{aspect-ratio:4/3}
+  .img-slot.r-3x2{aspect-ratio:3/2}
+  .img-slot.r-1x1{aspect-ratio:1/1}
+
+  /* ============ 图片实填框（关键：固定高度 + 只裁底部） ============
+     重要约束：高度用内联 height:Nvh 精确控制，不要用 aspect-ratio（会撑破布局）
+     object-position:top center 保证严禁裁剪顶部和左右，只裁剪底部
+  */
+  .frame-img{overflow:hidden;position:relative;background:rgba(0,0,0,.04);box-sizing:border-box;width:100%;border-radius:4px}
+  .slide.dark .frame-img{background:rgba(255,255,255,.04);border-color:rgba(255,255,255,.12)}
+  .frame-img > img{width:100%;height:100%;object-fit:cover;object-position:top center;display:block}
+  .frame-cap{display:flex;justify-content:space-between;align-items:baseline;gap:1vw;margin-top:.8vh;font-family:var(--mono);font-size:10px;letter-spacing:.22em;text-transform:uppercase;opacity:.72}
+  .frame-cap .pf{font-family:var(--serif-zh);font-weight:600;font-size:max(13px,1vw);letter-spacing:.04em;text-transform:none;opacity:.94}
+  .frame-cap .nb{font-family:var(--serif-en);font-style:italic;font-size:max(15px,1.2vw);letter-spacing:.02em;text-transform:none;opacity:.88}
+  .frame-cap .idx{font-family:var(--mono);opacity:.5}
+  figure.tile{display:flex;flex-direction:column;margin:0;min-width:0}
+  figure.tile > .frame-img{flex:0 0 auto}
+
+  /* ============ 导航 ============ */
+  #nav{position:fixed;left:50%;bottom:2.6vh;transform:translateX(-50%);z-index:30;display:flex;gap:10px;padding:8px 14px;border-radius:999px;background:rgba(0,0,0,.18);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px)}
+  #nav .dot{width:8px;height:8px;border-radius:50%;background:rgba(255,255,255,.3);cursor:pointer;transition:all .3s ease;border:0;padding:0}
+  #nav .dot:hover{background:rgba(255,255,255,.5);transform:scale(1.15)}
+  #nav .dot.active{background:rgba(255,255,255,.95);width:22px;border-radius:999px}
+  body.light-bg #nav{background:rgba(255,255,255,.25)}
+  body.light-bg #nav .dot{background:rgba(var(--ink-rgb),.25)}
+  body.light-bg #nav .dot.active{background:rgba(var(--ink-rgb),.9)}
+  #hint{position:fixed;bottom:3vh;right:3vw;z-index:30;font-family:var(--mono);font-size:10px;letter-spacing:.2em;text-transform:uppercase;opacity:.4;mix-blend-mode:difference;color:#aaa}
+
+  /* ============================================================
+     ============ LAYOUTS API · 面向 agent 的类（v2）============
+     所有 layouts.md 中的骨架都基于下面这套命名。
+     如果你在 layouts.md 里看到某个类，它必须在下面有定义。
+     ============================================================ */
+
+  /* ---------- .frame：每页主内容容器 ---------- */
+  .frame{flex:1;display:flex;flex-direction:column;min-height:0}
+  /* 当 .frame 同时加了 grid 类时，grid 的 display:grid 覆盖 flex */
+  .frame.grid-2-7-5,
+  .frame.grid-2-6-6,
+  .frame.grid-2-8-4,
+  .frame.grid-3-3,
+  .frame.grid-6{display:grid}
+
+  /* ---------- 标题层级（API 名称，衬线为主） ---------- */
+  .h-hero{
+    font-family:var(--serif-zh);
+    font-weight:900;
+    font-size:10vw;
+    line-height:.96;
+    letter-spacing:-.02em;
+  }
+  .h-xl{
+    font-family:var(--serif-zh);
+    font-weight:700;
+    font-size:6.2vw;
+    line-height:1.08;
+    letter-spacing:-.01em;
+  }
+  .h-sub{
+    font-family:var(--serif-zh);
+    font-weight:500;
+    font-size:3.1vw;
+    line-height:1.25;
+    letter-spacing:0;
+    opacity:.7;
+  }
+  .h-md{
+    font-family:var(--serif-zh);
+    font-weight:600;
+    font-size:2.3vw;
+    line-height:1.3;
+  }
+  /* 英文标题专用（Playfair 衬线） */
+  .h-hero-en,.h-xl-en{font-family:var(--serif-en);letter-spacing:-.025em}
+
+  /* ---------- lead 引语 ---------- */
+  .lead{
+    font-family:var(--serif-zh);
+    font-weight:400;
+    font-size:1.75vw;
+    line-height:1.5;
+    opacity:.86;
+  }
+
+  /* ---------- meta-row 底部元数据 ---------- */
+  .meta-row{
+    display:flex;
+    gap:1.2em;
+    align-items:baseline;
+    flex-wrap:wrap;
+    font-family:var(--mono);
+    font-size:max(12px,.92vw);
+    letter-spacing:.16em;
+    text-transform:uppercase;
+    opacity:.6;
+  }
+
+  /* ---------- stat-card（数据大字报用） ---------- */
+  .stat-card{
+    display:flex;
+    flex-direction:column;
+    gap:.8vh;
+    align-items:flex-start;
+    padding-top:1.6vh;
+    border-top:1px solid currentColor;
+    border-color:rgba(127,127,127,.3);
+  }
+  .stat-card .stat-label{
+    font-family:var(--mono);
+    font-size:max(10px,.78vw);
+    letter-spacing:.24em;
+    text-transform:uppercase;
+    opacity:.55;
+  }
+  .stat-card .stat-nb{
+    font-family:var(--serif-en);
+    font-weight:800;
+    font-size:5.8vw;
+    line-height:.9;
+    letter-spacing:-.03em;
+    font-feature-settings:"tnum";
+    margin-top:.4vh;
+  }
+  .stat-card .stat-nb .stat-unit{
+    font-family:var(--serif-zh);
+    font-weight:500;
+    font-size:.38em;
+    letter-spacing:0;
+    opacity:.72;
+    margin-left:.14em;
+  }
+  .stat-card .stat-note{
+    font-family:var(--sans-zh);
+    font-weight:400;
+    font-size:max(13px,1.05vw);
+    line-height:1.5;
+    opacity:.72;
+    margin-top:.6vh;
+  }
+  /* 当 stat-card 用于 grid-4（2x2），数字可以更大 */
+  .grid-4 .stat-card .stat-nb{font-size:7.5vw}
+  /* 当只有 3 个，字也可以稍大 */
+  .grid-3 .stat-card .stat-nb{font-size:6.8vw}
+
+  /* ---------- pipeline（流水线） ---------- */
+  .pipeline-section{
+    margin-top:4.4vh;
+    padding-top:2.8vh;
+    border-top:1px dashed rgba(127,127,127,.32);
+  }
+  .pipeline-section:first-of-type{
+    border-top:0;
+    padding-top:0;
+    margin-top:3vh;
+  }
+  .pipeline-label{
+    font-family:var(--mono);
+    font-size:max(11px,.85vw);
+    letter-spacing:.24em;
+    text-transform:uppercase;
+    opacity:.62;
+    margin-bottom:2.2vh;
+  }
+  .pipeline{
+    display:grid;
+    grid-template-columns:repeat(5,1fr);
+    gap:1.2vw;
+  }
+  .pipeline[data-cols="3"]{grid-template-columns:repeat(3,1fr)}
+  .pipeline[data-cols="4"]{grid-template-columns:repeat(4,1fr)}
+  .pipeline[data-cols="6"]{grid-template-columns:repeat(6,1fr)}
+  .step{
+    display:flex;
+    flex-direction:column;
+    gap:.8vh;
+    padding-top:1.4vh;
+    border-top:1px solid currentColor;
+    border-color:rgba(127,127,127,.35);
+  }
+  .step-nb{
+    font-family:var(--serif-en);
+    font-style:italic;
+    font-weight:500;
+    font-size:1.15vw;
+    opacity:.45;
+  }
+  .step-title{
+    font-family:var(--sans-zh);
+    font-weight:700;
+    font-size:1.55vw;
+    letter-spacing:.01em;
+    line-height:1.2;
+  }
+  .step-desc{
+    font-family:var(--sans-zh);
+    font-weight:400;
+    font-size:max(12px,.95vw);
+    line-height:1.45;
+    opacity:.72;
+  }
+
+  /* ---------- 网格（layouts.md 所用） ---------- */
+  /* 这些类独立挂到任何容器上都能生效，不依赖 .frame 复合选择器 */
+  .grid-2-7-5{display:grid;grid-template-columns:7fr 5fr;gap:3vw 4vh;align-items:start}
+  .grid-2-6-6{display:grid;grid-template-columns:1fr 1fr;gap:3vw 4vh;align-items:start}
+  .grid-2-8-4{display:grid;grid-template-columns:8fr 4fr;gap:3vw 4vh;align-items:start}
+  .grid-3-3{
+    display:grid;
+    grid-template-columns:repeat(3,1fr);
+    grid-auto-rows:minmax(0,1fr);
+    gap:2.4vh 2vw;
+  }
+  /* grid-6 已在旧样式里定义为 3x2，这里仅补 align */
+
+  /* ---------- 图片 frame-img（layouts.md 主命名） ---------- */
+  /* 在旧样式里已定义，这里补 img-cap 命名别名与增强 */
+  figure.frame-img{margin:0;display:flex;flex-direction:column;min-width:0}
+  .img-cap{
+    display:block;
+    margin-top:.8vh;
+    font-family:var(--mono);
+    font-size:max(10px,.8vw);
+    letter-spacing:.22em;
+    text-transform:uppercase;
+    opacity:.6;
+  }
+  /* callout src 命名别名 */
+  .callout-src{
+    display:block;
+    margin-top:1.6vh;
+    font-family:var(--mono);
+    font-size:11px;
+    letter-spacing:.2em;
+    text-transform:uppercase;
+    opacity:.6;
+  }
+
+  /* ---------- chrome & foot 补位（layouts.md 简单写法） ---------- */
+  .chrome{font-family:var(--mono);font-size:max(11px,.78vw);letter-spacing:.2em;text-transform:uppercase;opacity:.62}
+  .foot{font-family:var(--mono);font-size:max(11px,.78vw);letter-spacing:.18em;text-transform:uppercase;opacity:.5}
+
+  /* 固定字号，避免正文随视口连续缩放 */
+  .h-hero{font-size:8rem!important}.h-xl{font-size:5rem!important}.h-sub{font-size:2.5rem!important}.h-md{font-size:2rem!important}
+  .lead{font-size:1.55rem!important}.body-zh{font-size:1.1rem!important}
+  .pillar .ic{font-size:2rem!important}.pillar .t{font-size:2rem!important}.pillar .d{font-size:1rem!important}
+  .stat-card .stat-nb,.grid-3 .stat-card .stat-nb,.grid-4 .stat-card .stat-nb{font-size:4.7rem!important}
+  .step-nb{font-size:1rem!important}.step-title{font-size:1.35rem!important}.step-desc{font-size:.95rem!important}
+  .rowline .k{font-size:1.35rem!important}.rowline .v{font-size:1rem!important}
+  a{color:inherit;text-decoration-thickness:1px;text-underline-offset:.2em}
+
+  /* ---------- 响应式降级 ---------- */
+  @media (max-width:900px){
+    .display{font-size:16vw}
+    .display-zh{font-size:12vw}
+    .h1-zh{font-size:7vw}
+    .h-hero{font-size:3.8rem!important}
+    .h-xl{font-size:2.8rem!important}
+    .pipeline{grid-template-columns:repeat(2,1fr)}
+    .grid-2-7-5,.grid-2-6-6,.grid-2-8-4{grid-template-columns:1fr}
+    .slide{padding:4vh 5vw 9vh}
+    .chrome,.foot{font-size:9px}
+    .lead{font-size:1.05rem!important}
+    .body-zh{font-size:.9rem!important;line-height:1.55}
+    .h-md{font-size:1.6rem!important}
+    .grid-3,.grid-4,.grid-6{gap:2.2vh 4vw}
+    .stat-card .stat-nb,.grid-4 .stat-card .stat-nb{font-size:2.6rem!important}
+    .stat-card .stat-note{font-size:11px}
+    .step-title{font-size:3.4vw}.step-desc{font-size:11px}
+    #nav{gap:5px;padding:6px 8px;max-width:88vw;overflow:hidden}
+    #nav .dot{width:5px;height:5px;flex:0 0 auto}
+    #hint{display:none}
+  }
+</style>
+</head>
+<body>
+
+<canvas id="bg-dark" class="bg"></canvas>
+<canvas id="bg-light" class="bg"></canvas>
+<div id="hint">← → 翻页 · ESC 索引</div>
+
+<div id="deck">
+
+<!-- ============================================================
+     SLIDES 插入区 · 在此处填充所有 <section class="slide ..."> 页面
+     每页模板参考 references/page-patterns.md
+     页面组件参考 references/components.md
+     ============================================================ -->
+
+<section class="slide hero dark">
+  <div class="chrome"><div>高中地理 · 教师学分培训</div><div>Vol. 01</div></div>
+  <div class="frame" style="display:grid;gap:3vh;align-content:center;min-height:80vh">
+    <div class="kicker">十三年 · 三次转型</div>
+    <h1 class="h-hero" style="font-size:8.2vw">从模板到系统</h1>
+    <h2 class="h-sub">从“教会答题”到“学会解决问题”</h2>
+    <p class="lead" style="max-width:64vw">一位高中地理教师对“系统”的持续追问</p>
+  </div>
+  <div class="foot"><div>90 分钟同行分享</div><div>01 / 35</div></div>
+</section>
+
+<section class="slide light">
+  <div class="chrome"><div>开场 · 现场投票</div><div>02 / 35</div></div>
+  <div class="frame" style="padding-top:6vh">
+    <div class="kicker">第一反应</div><h2 class="h-xl">你理解的“系统”是什么？</h2>
+    <div class="grid-4" style="margin-top:5vh">
+      <div class="pillar"><div class="ic">A</div><div class="t">知识网络</div><div class="d">完整、清晰、彼此关联</div></div>
+      <div class="pillar"><div class="ic">B</div><div class="t">答题框架</div><div class="d">稳定、规范、能够复用</div></div>
+      <div class="pillar"><div class="ic">C</div><div class="t">分析路径</div><div class="d">面对问题有路可走</div></div>
+      <div class="pillar"><div class="ic">D</div><div class="t">解决能力</div><div class="d">能在新情境中自主运行</div></div>
+    </div>
+  </div><div class="foot"><div>先选择，再与邻座说一句理由</div><div>02 / 35</div></div>
+</section>
+
+<section class="slide dark">
+  <div class="chrome"><div>序章 · 时间轴</div><div>03 / 35</div></div>
+  <div class="frame" style="padding-top:7vh"><div class="kicker">Three Versions</div><h2 class="h-xl">三次作答</h2>
+    <div class="pipeline-section"><div class="pipeline" data-cols="3">
+      <div class="step"><div class="step-nb">1.0</div><div class="step-title">课本与模板</div><div class="step-desc">《田纳西河流域的开发》</div></div>
+      <div class="step"><div class="step-nb">2.0</div><div class="step-title">体系与笔记</div><div class="step-desc">《青藏何处觅秋色》</div></div>
+      <div class="step"><div class="step-nb">3.0</div><div class="step-title">问题与素养</div><div class="step-desc">《对流层大气的受热过程》</div></div>
+    </div></div>
+  </div><div class="foot"><div>改变的不是素材，是对学习的理解</div><div>03 / 35</div></div>
+</section>
+
+<section class="slide hero light">
+  <div class="chrome"><div>第一幕 · Template</div><div>04 / 35</div></div>
+  <div class="frame" style="display:grid;gap:4vh;align-content:center;min-height:80vh"><div class="kicker">Version 1.0</div><h1 class="h-hero" style="font-size:8vw">闭环</h1><p class="lead">教材顺序 + 答题模板 + 环环相扣，等于系统吗？</p></div>
+  <div class="foot"><div>课本与模板时代</div><div>04 / 35</div></div>
+</section>
+
+<section class="slide light">
+  <div class="chrome"><div>第一幕 · 代表课例</div><div>05 / 35</div></div>
+  <div class="frame" style="padding-top:6vh"><div class="kicker">田纳西河流域</div><h2 class="h-xl">一条漂亮的链</h2>
+    <div class="pipeline-section"><div class="pipeline" data-cols="4">
+      <div class="step"><div class="step-nb">01</div><div class="step-title">区域特征</div><div class="step-desc">地形、气候、水文</div></div>
+      <div class="step"><div class="step-nb">02</div><div class="step-title">优势与问题</div><div class="step-desc">水能、洪涝与资源</div></div>
+      <div class="step"><div class="step-nb">03</div><div class="step-title">开发措施</div><div class="step-desc">梯级开发、治理保护</div></div>
+      <div class="step"><div class="step-nb">04</div><div class="step-title">综合效益</div><div class="step-desc">防洪、发电、航运</div></div>
+    </div></div>
+  </div><div class="foot"><div>背景推出问题，问题对应措施</div><div>05 / 35</div></div>
+</section>
+
+<section class="slide dark">
+  <div class="chrome"><div>第一幕 · 模板的两面</div><div>06 / 35</div></div>
+  <div class="frame grid-2-6-6" style="padding-top:8vh">
+    <div><div class="kicker">收益</div><h2 class="h-md">脚手架</h2><p class="lead" style="margin-top:3vh">降低起步难度<br>规范表达<br>提高熟练题得分</p></div>
+    <div><div class="kicker">代价</div><h2 class="h-md">模具</h2><p class="lead" style="margin-top:3vh">先找题型<br>再套栏目<br>证据逐渐缺席</p></div>
+  </div><div class="foot"><div>模板没有错，起点不能从证据换成栏目</div><div>06 / 35</div></div>
+</section>
+
+<section class="slide hero dark">
+  <div class="chrome"><div>第一幕 · 转折</div><div>07 / 35</div></div>
+  <div class="frame center"><div class="kicker">公开课后的评价</div><h1 class="h-xl" style="max-width:80vw">“你脑子里没有系统。”</h1><p class="lead" style="margin-top:4vh">一句话，留下十三年的追问。</p></div>
+  <div class="foot"><div>不是知识不够，而是谁在建构</div><div>07 / 35</div></div>
+</section>
+
+<section class="slide light">
+  <div class="chrome"><div>第一幕 · 边界</div><div>08 / 35</div></div>
+  <div class="frame" style="padding-top:7vh"><div class="kicker">认知责任</div><h2 class="h-xl">教师完成了什么？</h2>
+    <div class="grid-4" style="margin-top:5vh">
+      <div class="stat-card"><div class="stat-label">Teacher</div><div class="stat-nb">分</div><div class="stat-note">分类</div></div>
+      <div class="stat-card"><div class="stat-label">Teacher</div><div class="stat-nb">排</div><div class="stat-note">排序</div></div>
+      <div class="stat-card"><div class="stat-label">Teacher</div><div class="stat-nb">连</div><div class="stat-note">对应</div></div>
+      <div class="stat-card"><div class="stat-label">Student</div><div class="stat-nb">套</div><div class="stat-note">识记、复述、套用</div></div>
+    </div>
+  </div><div class="foot"><div>教师讲得有系统，不等于学生学得有系统</div><div>08 / 35</div></div>
+</section>
+
+<section class="slide hero light">
+  <div class="chrome"><div>第二幕 · Knowledge</div><div>09 / 35</div></div>
+  <div class="frame" style="display:grid;gap:4vh;align-content:center;min-height:80vh"><div class="kicker">Version 2.0</div><h1 class="h-hero" style="font-size:8vw">完整</h1><p class="lead">知识无遗漏 + 结构可视化 + 成品笔记，等于系统吗？</p></div>
+  <div class="foot"><div>知识体系与成品笔记</div><div>09 / 35</div></div>
+</section>
+
+<section class="slide dark">
+  <div class="chrome"><div>第二幕 · 教师行动</div><div>10 / 35</div></div>
+  <div class="frame grid-2-7-5" style="padding-top:7vh">
+    <div><div class="kicker">越来越厚</div><h2 class="h-xl">成品笔记</h2><p class="lead" style="margin-top:3vh">概念、规律、案例、模板、易错点，一个都不能少。</p></div>
+    <div class="callout"><span class="q-big">学生课上只负责听懂，课后复习完整笔记。</span><span class="callout-src">当时的解决方案</span></div>
+  </div><div class="foot"><div>资料拥有系统，不等于头脑拥有系统</div><div>10 / 35</div></div>
+</section>
+
+<section class="slide light">
+  <div class="chrome"><div>第二幕 · 代表课例</div><div>11 / 35</div></div>
+  <div class="frame" style="padding-top:6vh"><div class="kicker">青藏何处觅秋色</div><h2 class="h-xl">三站，一张知识地图</h2>
+    <div class="grid-3" style="margin-top:6vh">
+      <div class="pillar"><div class="ic">01</div><div class="t">藏北高原</div><div class="d">植被类型与高寒环境</div></div>
+      <div class="pillar"><div class="ic">02</div><div class="t">藏南谷地</div><div class="d">河谷农业与区位条件</div></div>
+      <div class="pillar"><div class="ic">03</div><div class="t">藏东南</div><div class="d">垂直自然带与分异</div></div>
+    </div>
+  </div><div class="foot"><div>知识覆盖丰富，空间路径清晰</div><div>11 / 35</div></div>
+</section>
+
+<section class="slide hero dark">
+  <div class="chrome"><div>第二幕 · 失效时刻</div><div>12 / 35</div></div>
+  <div class="frame center"><div class="kicker">公开课上的失语</div><h1 class="h-xl">背过，不等于会用。</h1><p class="lead" style="margin-top:4vh">知道结论，也不等于能建立结论。</p></div>
+  <div class="foot"><div>学生在等待教师把问题翻译成熟悉题型</div><div>12 / 35</div></div>
+</section>
+
+<section class="slide light">
+  <div class="chrome"><div>第二幕 · 反思</div><div>13 / 35</div></div>
+  <div class="frame grid-2-6-6" style="padding-top:8vh">
+    <div><div class="kicker">表面效率</div><h2 class="h-md">教师快速抵达</h2><p class="body-zh" style="margin-top:3vh">排除岔路、压缩错误、拆成短答，把知识嚼碎后交付。</p></div>
+    <div><div class="kicker">真实代价</div><h2 class="h-md">学生没有走路</h2><p class="body-zh" style="margin-top:3vh">听懂只是跟随思路；会解决要求独立找到起点、证据和关系。</p></div>
+  </div><div class="foot"><div>有一段路，不能由教师代走</div><div>13 / 35</div></div>
+</section>
+
+<section class="slide dark">
+  <div class="chrome"><div>第二幕 · 边界</div><div>14 / 35</div></div>
+  <div class="frame" style="padding-top:7vh"><div class="kicker">Three Distinctions</div><h2 class="h-xl">完整，不等于生成</h2>
+    <div class="pipeline-section"><div class="pipeline" data-cols="3">
+      <div class="step"><div class="step-nb">01</div><div class="step-title">完整性</div><div class="step-desc">不等于生成性</div></div>
+      <div class="step"><div class="step-nb">02</div><div class="step-title">有序存储</div><div class="step-desc">不等于灵活调用</div></div>
+      <div class="step"><div class="step-nb">03</div><div class="step-title">教师图谱</div><div class="step-desc">不等于学生结构</div></div>
+    </div></div>
+  </div><div class="foot"><div>真正的系统，在没有现成目录时仍能运行</div><div>14 / 35</div></div>
+</section>
+
+<section class="slide hero light">
+  <div class="chrome"><div>转场 · 同行诊断</div><div>15 / 35</div></div>
+  <div class="frame center"><div class="kicker">6 分钟</div><h1 class="h-xl">我替学生做了什么？</h1><p class="lead" style="margin-top:4vh;max-width:70vw">哪个判断、哪组关系、哪个错误，本应留给学生？</p></div>
+  <div class="foot"><div>静写 1 分钟 · 两人交流 3 分钟 · 分享 2 分钟</div><div>15 / 35</div></div>
+</section>
+
+<section class="slide hero dark">
+  <div class="chrome"><div>第三幕 · Capability</div><div>16 / 35</div></div>
+  <div class="frame" style="display:grid;gap:4vh;align-content:center;min-height:80vh"><div class="kicker">Version 3.0</div><h1 class="h-hero" style="font-size:8vw">运行</h1><p class="lead">系统不是静止摆放的知识，而是一套能解决问题的能力结构。</p></div>
+  <div class="foot"><div>问题解决与素养建构</div><div>16 / 35</div></div>
+</section>
+
+<section class="slide light">
+  <div class="chrome"><div>第三幕 · 真实情境</div><div>17 / 35</div></div>
+  <div class="frame" style="padding-top:5vh"><div class="kicker">2026 · South Australia</div><h2 class="h-xl">50.0℃</h2>
+    <div class="grid-3" style="margin-top:5vh">
+      <div class="stat-card"><div class="stat-label">Date</div><div class="stat-nb">30</div><div class="stat-note">2026 年 1 月</div></div>
+      <div class="stat-card"><div class="stat-label">Maximum</div><div class="stat-nb">50.0<span class="stat-unit">℃</span></div><div class="stat-note">Port Augusta</div></div>
+      <div class="stat-card"><div class="stat-label">Minimum</div><div class="stat-nb">30.2<span class="stat-unit">℃</span></div><div class="stat-note">夜间仍然炎热</div></div>
+    </div>
+  </div><div class="foot"><div>数据源 · <a href="https://www.bom.gov.au/climate/dwo/202601/pdf/IDCJDW5054.202601.pdf" target="_blank" rel="noopener">Australian Bureau of Meteorology</a></div><div>17 / 35</div></div>
+</section>
+
+<section class="slide dark">
+  <div class="chrome"><div>第三幕 · 核心任务</div><div>18 / 35</div></div>
+  <div class="frame" style="padding-top:6vh"><div class="kicker">不是“高温原因模板”</div><h2 class="h-xl">三个为什么</h2>
+    <div class="grid-3" style="margin-top:6vh">
+      <div class="pillar"><div class="ic">01</div><div class="t">白天极热</div><div class="d">能量最初从哪里来？</div></div>
+      <div class="pillar"><div class="ic">02</div><div class="t">夜间仍热</div><div class="d">没有太阳为何不迅速降温？</div></div>
+      <div class="pillar"><div class="ic">03</div><div class="t">持续多日</div><div class="d">为什么这里，为什么七八天？</div></div>
+    </div>
+  </div><div class="foot"><div>把学生放进一个必须解释的问题</div><div>18 / 35</div></div>
+</section>
+
+<section class="slide hero light">
+  <div class="chrome"><div>证据链 · 材料一</div><div>19 / 35</div></div>
+  <div class="frame center"><div class="kicker">直觉冲突</div><h1 class="h-xl">太阳先晒热谁？</h1><p class="lead" style="margin-top:4vh">大气，还是地面？请用辐射路径判断。</p></div>
+  <div class="foot"><div>让错误显现，让证据进入</div><div>19 / 35</div></div>
+</section>
+
+<section class="slide light">
+  <div class="chrome"><div>证据链 · 材料二</div><div>20 / 35</div></div>
+  <div class="frame" style="padding-top:6vh"><div class="kicker">Energy Path</div><h2 class="h-xl">地面把能量交给大气</h2>
+    <div class="pipeline-section"><div class="pipeline" data-cols="4">
+      <div class="step"><div class="step-nb">01</div><div class="step-title">太阳短波</div><div class="step-desc">穿过大气</div></div>
+      <div class="step"><div class="step-nb">02</div><div class="step-title">地面吸收</div><div class="step-desc">地表升温</div></div>
+      <div class="step"><div class="step-nb">03</div><div class="step-title">地面长波</div><div class="step-desc">向外释放能量</div></div>
+      <div class="step"><div class="step-nb">04</div><div class="step-title">大气增温</div><div class="step-desc">辐射、感热与潜热</div></div>
+    </div></div>
+  </div><div class="foot"><div>地面是近地面大气的主要直接热源</div><div>20 / 35</div></div>
+</section>
+
+<section class="slide dark">
+  <div class="chrome"><div>证据链 · 材料三</div><div>21 / 35</div></div>
+  <div class="frame grid-2-6-6" style="padding-top:7vh">
+    <div><div class="kicker">Night</div><h2 class="h-xl">太阳落山以后</h2><p class="lead" style="margin-top:3vh">地面仍在失去能量，大气怎样参与？</p></div>
+    <div class="pipeline-section"><div class="pipeline" data-cols="3">
+      <div class="step"><div class="step-nb">A</div><div class="step-title">地面长波</div></div>
+      <div class="step"><div class="step-nb">B</div><div class="step-title">大气吸收</div></div>
+      <div class="step"><div class="step-nb">C</div><div class="step-title">逆辐射</div></div>
+    </div></div>
+  </div><div class="foot"><div>大气不制造能量，而是减缓地面净损失</div><div>21 / 35</div></div>
+</section>
+
+<section class="slide hero dark">
+  <div class="chrome"><div>证据链 · 第一次解释</div><div>22 / 35</div></div>
+  <div class="frame center"><div class="kicker">Not Enough</div><h1 class="h-xl">这条链，够了吗？</h1><p class="lead" style="margin-top:4vh;max-width:75vw">辐射过程每天都在发生，为什么偏偏是这里，为什么持续七八天？</p></div>
+  <div class="foot"><div>让初步答案主动暴露边界</div><div>22 / 35</div></div>
+</section>
+
+<section class="slide light">
+  <div class="chrome"><div>证据链 · 材料四</div><div>23 / 35</div></div>
+  <div class="frame" style="padding-top:6vh"><div class="kicker">Weather System</div><h2 class="h-xl">天气形势加入解释</h2>
+    <div class="grid-4" style="margin-top:5vh">
+      <div class="pillar"><div class="ic"><i data-lucide="sun"></i></div><div class="t">晴空</div><div class="d">更多太阳短波到达地面</div></div>
+      <div class="pillar"><div class="ic"><i data-lucide="arrow-down"></i></div><div class="t">下沉</div><div class="d">空气压缩增温</div></div>
+      <div class="pillar"><div class="ic"><i data-lucide="pause"></i></div><div class="t">停滞</div><div class="d">热气团长期维持</div></div>
+      <div class="pillar"><div class="ic"><i data-lucide="wind"></i></div><div class="t">弱风</div><div class="d">冷空气不易补充</div></div>
+    </div>
+  </div><div class="foot"><div><a href="https://www.abc.net.au/news/2026-01-27/south-east-aus-heatwave-sets-record-temperatures-exceed-49c/106274644" target="_blank" rel="noopener">事件机制来源 · ABC Weather</a></div><div>23 / 35</div></div>
+</section>
+
+<section class="slide dark">
+  <div class="chrome"><div>证据链 · 材料五</div><div>24 / 35</div></div>
+  <div class="frame grid-2-6-6" style="padding-top:7vh">
+    <div><div class="kicker">湿润地表</div><h2 class="h-md">潜热更多</h2><p class="lead" style="margin-top:3vh">更多能量用于水分蒸发。</p></div>
+    <div><div class="kicker">干燥地表</div><h2 class="h-md">感热更多</h2><p class="lead" style="margin-top:3vh">更多能量加热近地层空气。</p></div>
+  </div><div class="foot"><div>机制可以判断，贡献不能无证据量化</div><div>24 / 35</div></div>
+</section>
+
+<section class="slide hero light">
+  <div class="chrome"><div>小组任务 · 6 分钟</div><div>25 / 35</div></div>
+  <div class="frame center"><div class="kicker">Build the Model</div><h1 class="h-xl">重建因果网络</h1><p class="lead" style="margin-top:4vh;max-width:78vw">太阳短波 · 地面长波 · 大气逆辐射 · 高压下沉 · 干燥地表 · 冷锋</p></div>
+  <div class="foot"><div>每条箭头必须写关系动词</div><div>25 / 35</div></div>
+</section>
+
+<section class="slide light">
+  <div class="chrome"><div>模型 · 评价焦点</div><div>26 / 35</div></div>
+  <div class="frame" style="padding-top:6vh"><div class="kicker">A Working Model</div><h2 class="h-xl">不是知识点的合影</h2>
+    <div class="grid-3" style="margin-top:6vh">
+      <div class="pillar"><div class="ic">→</div><div class="t">方向</div><div class="d">箭头有没有明确方向</div></div>
+      <div class="pillar"><div class="ic">V.</div><div class="t">动词</div><div class="d">导致、增强、减弱、替换</div></div>
+      <div class="pillar"><div class="ic">S.</div><div class="t">尺度</div><div class="d">日变化与天气过程分层</div></div>
+    </div>
+  </div><div class="foot"><div>一张可以运行的因果模型</div><div>26 / 35</div></div>
+</section>
+
+<section class="slide dark">
+  <div class="chrome"><div>模型 · 完整解释</div><div>27 / 35</div></div>
+  <div class="frame" style="padding-top:6vh"><div class="kicker">Four Layers</div><h2 class="h-xl">四层解释</h2>
+    <div class="pipeline-section"><div class="pipeline" data-cols="4">
+      <div class="step"><div class="step-nb">01</div><div class="step-title">季节背景</div><div class="step-desc">太阳高度与昼长</div></div>
+      <div class="step"><div class="step-nb">02</div><div class="step-title">受热过程</div><div class="step-desc">白天升温、夜间保温</div></div>
+      <div class="step"><div class="step-nb">03</div><div class="step-title">天气系统</div><div class="step-desc">发生、维持、结束</div></div>
+      <div class="step"><div class="step-nb">04</div><div class="step-title">下垫面</div><div class="step-desc">可能的放大作用</div></div>
+    </div></div>
+  </div><div class="foot"><div>冷锋过境，是一次自然实验</div><div>27 / 35</div></div>
+</section>
+
+<section class="slide light">
+  <div class="chrome"><div>评价 · 不只看关键词</div><div>28 / 35</div></div>
+  <div class="frame" style="padding-top:5vh"><div class="kicker">Assessment</div><h2 class="h-xl">解释是否成立？</h2>
+    <div style="margin-top:4vh">
+      <div class="rowline"><div class="k">证据</div><div class="v">是否引用温度、时间与天气图</div><div class="m">Evidence</div></div>
+      <div class="rowline"><div class="k">关系</div><div class="v">是否用因果动词建立链条</div><div class="m">Relation</div></div>
+      <div class="rowline"><div class="k">尺度</div><div class="v">是否区分日变化与天气过程</div><div class="m">Scale</div></div>
+      <div class="rowline"><div class="k">边界</div><div class="v">是否避免一个因素解释一切</div><div class="m">Boundary</div></div>
+    </div>
+  </div><div class="foot"><div>评价方式必须与能力目标一致</div><div>28 / 35</div></div>
+</section>
+
+<section class="slide hero dark">
+  <div class="chrome"><div>迁移任务 · New Context</div><div>29 / 35</div></div>
+  <div class="frame center"><div class="kicker">方向相反，结构相同</div><h1 class="h-xl">晴朗秋夜为何易霜冻？</h1><p class="lead" style="margin-top:4vh">从极端高温，迁移到夜间降温。</p></div>
+  <div class="foot"><div>模型能带到新情境，系统才开始属于学生</div><div>29 / 35</div></div>
+</section>
+
+<section class="slide light">
+  <div class="chrome"><div>第三幕 · 教学边界</div><div>30 / 35</div></div>
+  <div class="frame" style="padding-top:6vh"><div class="kicker">What Not to Do</div><h2 class="h-xl">这节课不做什么</h2>
+    <div class="grid-4" style="margin-top:5vh">
+      <div class="pillar"><div class="ic">01</div><div class="t">不播新闻了事</div><div class="d">真实情境不是包装</div></div>
+      <div class="pillar"><div class="ic">02</div><div class="t">不做单因归因</div><div class="d">温室效应不能解释一切</div></div>
+      <div class="pillar"><div class="ic">03</div><div class="t">不代替推理</div><div class="d">关键认知动作留给学生</div></div>
+      <div class="pillar"><div class="ic">04</div><div class="t">不求一次完美</div><div class="d">模型在检验中修正</div></div>
+    </div>
+  </div><div class="foot"><div>情境、证据与任务必须彼此咬合</div><div>30 / 35</div></div>
+</section>
+
+<section class="slide dark">
+  <div class="chrome"><div>第三幕 · 角色重构</div><div>31 / 35</div></div>
+  <div class="frame grid-2-6-6" style="padding-top:7vh">
+    <div><div class="kicker">教师</div><h2 class="h-md">设计学习条件</h2><p class="body-zh" style="margin-top:3vh">选情境、配证据、设冲突、控难度、促表达、做评价。</p></div>
+    <div><div class="kicker">学生</div><h2 class="h-md">承担认知责任</h2><p class="body-zh" style="margin-top:3vh">提取、判断、关联、建模、检验、迁移。</p></div>
+  </div><div class="foot"><div>教师减少代替，增加设计</div><div>31 / 35</div></div>
+</section>
+
+<section class="slide hero light">
+  <div class="chrome"><div>提炼 · Three Versions</div><div>32 / 35</div></div>
+  <div class="frame center"><div class="kicker">不是简单替换</div><h1 class="h-xl">学生承担得越来越多</h1><p class="lead" style="margin-top:4vh">程序意识、知识联系和问题解决，各归其位。</p></div>
+  <div class="foot"><div>升级的是认知责任</div><div>32 / 35</div></div>
+</section>
+
+<section class="slide light">
+  <div class="chrome"><div>提炼 · 定义</div><div>33 / 35</div></div>
+  <div class="frame" style="padding-top:6vh"><div class="kicker">A Temporary Definition</div><h2 class="h-xl">系统，是能力结构</h2>
+    <div class="pipeline-section"><div class="pipeline" data-cols="5">
+      <div class="step"><div class="step-nb">01</div><div class="step-title">证据</div><div class="step-desc">从事实出发</div></div>
+      <div class="step"><div class="step-nb">02</div><div class="step-title">关系</div><div class="step-desc">连接地理要素</div></div>
+      <div class="step"><div class="step-nb">03</div><div class="step-title">过程</div><div class="step-desc">解释如何发生</div></div>
+      <div class="step"><div class="step-nb">04</div><div class="step-title">尺度</div><div class="step-desc">分层组织解释</div></div>
+      <div class="step"><div class="step-nb">05</div><div class="step-title">迁移</div><div class="step-desc">进入新情境</div></div>
+    </div></div>
+  </div><div class="foot"><div>以空间和区域为背景，形成可检验的解释</div><div>33 / 35</div></div>
+</section>
+
+<section class="slide dark">
+  <div class="chrome"><div>行动 · 旧课升级</div><div>34 / 35</div></div>
+  <div class="frame" style="padding-top:6vh"><div class="kicker">Five Moves</div><h2 class="h-xl">明天就能做的五步</h2>
+    <div class="pipeline-section"><div class="pipeline" data-cols="5">
+      <div class="step"><div class="step-nb">01</div><div class="step-title">真实现象</div></div>
+      <div class="step"><div class="step-nb">02</div><div class="step-title">认知动作</div></div>
+      <div class="step"><div class="step-nb">03</div><div class="step-title">分批证据</div></div>
+      <div class="step"><div class="step-nb">04</div><div class="step-title">不足追问</div></div>
+      <div class="step"><div class="step-nb">05</div><div class="step-title">迁移检验</div></div>
+    </div></div>
+  </div><div class="foot"><div>不要先大规模重写，从一节旧课开始</div><div>34 / 35</div></div>
+</section>
+
+<section class="slide hero dark">
+  <div class="chrome"><div>结语 · 回到开场</div><div>35 / 35</div></div>
+  <div class="frame center"><div class="kicker">把思考还给学生</div><h1 class="h-xl" style="max-width:82vw">系统不是教师讲出来的完整，<br>而是学生解决问题时生长出来的秩序。</h1><div class="meta-row" style="margin-top:5vh"><span>证据</span><span>关系</span><span>过程</span><span>尺度</span><span>迁移</span></div></div>
+  <div class="foot"><div>谢谢 · 再次选择你的答案</div><div>35 / 35</div></div>
+</section>
+
+</div>
+
+<div id="nav"></div>
+
+<script>
+/* =============== WebGL 双背景 ===============
+   深色页：Holographic Dispersion（全息色散 · 钛金暗流）—— 彩虹微扰、鼠标径向涟漪
+   浅色页：Spiral Vortex（旋转涡流 · 银色珍珠）—— domain-warp 流动、无中心
+   修改风格请参考 references/webgl-backgrounds.md
+*/
+const VS = `attribute vec2 position;void main(){gl_Position=vec4(position,0.0,1.0);}`;
+
+const FS_DARK = `precision highp float;
+uniform vec2 u_resolution;uniform float u_time;uniform vec2 u_mouse;
+vec3 palette(float t,vec3 a,vec3 b,vec3 c,vec3 d){return a+b*cos(6.28318*(c*t+d));}
+void main(){
+  vec2 uv=gl_FragCoord.xy/u_resolution.xy;
+  vec2 p=uv*2.0-1.0;p.x*=u_resolution.x/u_resolution.y;
+  vec2 m=u_mouse*2.0-1.0;m.x*=u_resolution.x/u_resolution.y;
+  float md=length(p-m);
+  float mr=sin(md*15.0-u_time*4.0)*exp(-md*3.0);p+=mr*0.08;
+  vec2 p0=p;
+  for(float i=1.0;i<4.0;i++){
+    p.x+=0.1/i*sin(i*3.0*p.y+u_time*0.4)+0.05;
+    p.y+=0.1/i*cos(i*2.0*p.x+u_time*0.3)-0.05;
+  }
+  float r=length(p);float ang=atan(p.y,p.x);
+  vec3 a=vec3(0.12,0.12,0.13);
+  vec3 b=vec3(0.03,0.04,0.05);
+  vec3 c=vec3(1.0,1.0,1.0);
+  vec3 d=vec3(0.1,0.2,0.4);
+  vec3 col=palette(r*1.5+p0.x*0.5+u_time*0.1,a,b,c,d);
+  float disp=sin(r*25.0-u_time*1.5+ang*2.0)*0.5+0.5;
+  col+=vec3(disp*0.015,disp*0.01,disp*0.02);
+  float hi=pow(sin(p.x*4.0+p.y*3.0+u_time)*0.5+0.5,8.0);
+  col+=hi*0.08;
+  vec3 base=vec3(0.05,0.05,0.06);
+  col=mix(base,col,0.85);
+  gl_FragColor=vec4(col,1.0);
+}`;
+
+const FS_LIGHT = `precision highp float;
+uniform vec2 u_resolution;uniform float u_time;uniform vec2 u_mouse;
+float hash(vec2 p){return fract(sin(dot(p,vec2(127.1,311.7)))*43758.5453);}
+float noise(vec2 p){
+  vec2 i=floor(p),f=fract(p);
+  float a=hash(i),b=hash(i+vec2(1,0));
+  float c=hash(i+vec2(0,1)),d=hash(i+vec2(1,1));
+  vec2 u=f*f*(3.0-2.0*f);
+  return mix(a,b,u.x)+(c-a)*u.y*(1.0-u.x)+(d-b)*u.x*u.y;
+}
+float fbm(vec2 p){
+  float v=0.0,a=0.5;
+  mat2 m=mat2(0.80,0.60,-0.60,0.80);
+  for(int i=0;i<5;i++){v+=a*noise(p);p=m*p*2.02;a*=0.5;}
+  return v;
+}
+void main(){
+  vec2 uv=gl_FragCoord.xy/u_resolution.xy;
+  vec2 p=uv;p.x*=u_resolution.x/u_resolution.y;
+  vec2 m=u_mouse;m.x*=u_resolution.x/u_resolution.y;
+  vec2 md=p-m;float dl=length(md);
+  p+=normalize(md+vec2(0.0001))*exp(-dl*5.0)*0.03;
+  vec2 q=vec2(fbm(p*1.8+u_time*0.07),fbm(p*1.8+vec2(5.2,1.3)+u_time*0.06));
+  vec2 r=vec2(fbm(p*2.0+q*1.3+vec2(1.7,9.2)+u_time*0.05),
+              fbm(p*2.0+q*1.3+vec2(8.3,2.8)+u_time*0.04));
+  float f=fbm(p*2.2+r*1.5);
+  vec3 silverDark=vec3(0.86,0.85,0.84);
+  vec3 paper=vec3(0.955,0.945,0.925);
+  vec3 col=mix(silverDark,paper,f);
+  float ph=r.x*2.2+u_time*0.35;
+  col+=vec3(0.78,0.62,0.92)*sin(ph)*0.055;
+  col+=vec3(0.55,0.72,0.95)*sin(ph*0.8+2.0)*0.05;
+  float hl=smoothstep(0.48,0.92,f);
+  col+=hl*0.06;
+  gl_FragColor=vec4(col,1.0);
+}`;
+
+const mouse={x:0.5,y:0.5};
+addEventListener('mousemove',e=>{mouse.x=e.clientX/innerWidth;mouse.y=e.clientY/innerHeight});
+
+function bootGL(canvasId, fsSrc){
+  const canvas=document.getElementById(canvasId);
+  const gl=canvas.getContext('webgl',{alpha:false,antialias:true});
+  if(!gl) return ()=>false;
+  const mk=(t,s)=>{const sh=gl.createShader(t);gl.shaderSource(sh,s);gl.compileShader(sh);return sh};
+  const prog=gl.createProgram();
+  gl.attachShader(prog,mk(gl.VERTEX_SHADER,VS));
+  gl.attachShader(prog,mk(gl.FRAGMENT_SHADER,fsSrc));
+  gl.linkProgram(prog);gl.useProgram(prog);
+  const buf=gl.createBuffer();
+  gl.bindBuffer(gl.ARRAY_BUFFER,buf);
+  gl.bufferData(gl.ARRAY_BUFFER,new Float32Array([-1,-1,1,-1,-1,1,-1,1,1,-1,1,1]),gl.STATIC_DRAW);
+  const pos=gl.getAttribLocation(prog,'position');
+  gl.enableVertexAttribArray(pos);gl.vertexAttribPointer(pos,2,gl.FLOAT,false,0,0);
+  const lRes=gl.getUniformLocation(prog,'u_resolution');
+  const lT=gl.getUniformLocation(prog,'u_time');
+  const lM=gl.getUniformLocation(prog,'u_mouse');
+  const resize=()=>{
+    const d=Math.min(window.devicePixelRatio||1,2);
+    canvas.width=innerWidth*d;canvas.height=innerHeight*d;
+    gl.viewport(0,0,canvas.width,canvas.height);
+  };
+  addEventListener('resize',resize);resize();
+  return (tSec)=>{
+    gl.uniform2f(lRes,canvas.width,canvas.height);
+    gl.uniform1f(lT,tSec);
+    gl.uniform2f(lM,mouse.x,1-mouse.y);
+    gl.drawArrays(gl.TRIANGLES,0,6);
+    return true;
+  };
+}
+const drawDark=bootGL('bg-dark',FS_DARK);
+const drawLight=bootGL('bg-light',FS_LIGHT);
+const t0=Date.now();
+(function loop(){
+  const t=(Date.now()-t0)/1000;
+  drawDark(t);drawLight(t);
+  requestAnimationFrame(loop);
+})();
+
+// =============== 导航（翻页 / 圆点 / 键盘 / 滚轮 / 触屏） ===============
+const deck=document.getElementById('deck');
+const slides=deck.querySelectorAll('.slide');
+const nav=document.getElementById('nav');
+let idx=0,total=slides.length,lock=false;
+
+// 关键：矫正 deck 宽度为 total * 100vw，否则翻页会错位
+deck.style.width=(total*100)+'vw';
+
+slides.forEach((s,i)=>{
+  const b=document.createElement('button');
+  b.className='dot';b.dataset.i=i;b.setAttribute('aria-label','Page '+(i+1));
+  b.onclick=()=>go(i);
+  nav.appendChild(b);
+});
+
+function go(n){
+  if(lock)return;
+  idx=Math.max(0,Math.min(total-1,n));
+  deck.style.transform=`translateX(${-idx*100}vw)`;
+  nav.querySelectorAll('.dot').forEach((d,i)=>d.classList.toggle('active',i===idx));
+  /* 主题切换：优先读 data-theme，其次从 class（light/dark）推断 */
+  const el=slides[idx];
+  const th=el.dataset.theme || (el.classList.contains('light')?'light':(el.classList.contains('dark')?'dark':'dark'));
+  document.body.classList.toggle('light-bg',th==='light');
+  lock=true;setTimeout(()=>lock=false,700);
+}
+
+/* =============== ESC 索引视图 =============== */
+let overviewOn=false;
+const ov=document.createElement('div');
+ov.id='overview';
+ov.style.cssText='position:fixed;inset:0;z-index:100;background:rgba(var(--ink-rgb),.92);backdrop-filter:blur(12px);display:none;overflow-y:auto;padding:4vh 4vw';
+document.body.appendChild(ov);
+
+function buildOverview(){
+  ov.innerHTML='';
+  const grid=document.createElement('div');
+  grid.style.cssText='display:grid;grid-template-columns:repeat(4,1fr);gap:2vh 1.6vw;max-width:90vw;margin:0 auto';
+  slides.forEach((s,i)=>{
+    const card=document.createElement('div');
+    card.style.cssText='cursor:pointer;border-radius:6px;overflow:hidden;border:2px solid '+(i===idx?'rgba(var(--paper-rgb),.8)':'rgba(var(--paper-rgb),.15)')+';transition:border-color .2s';
+    card.onmouseenter=()=>card.style.borderColor='rgba(var(--paper-rgb),.6)';
+    card.onmouseleave=()=>card.style.borderColor=i===idx?'rgba(var(--paper-rgb),.8)':'rgba(var(--paper-rgb),.15)';
+    const wrap=document.createElement('div');
+    wrap.style.cssText='width:100%;aspect-ratio:16/9;overflow:hidden;position:relative;pointer-events:none;background:'+(s.classList.contains('light')?'var(--paper)':'var(--ink)');
+    const clone=s.cloneNode(true);
+    clone.style.cssText='width:100vw;height:100vh;transform:scale('+(1/4.5)+');transform-origin:top left;position:absolute;top:0;left:0;pointer-events:none';
+    wrap.appendChild(clone);
+    const label=document.createElement('div');
+    label.style.cssText='padding:6px 10px;font-family:var(--mono);font-size:11px;letter-spacing:.18em;text-transform:uppercase;color:var(--paper);opacity:.7';
+    label.textContent=(i+1)+' / '+total;
+    card.appendChild(wrap);
+    card.appendChild(label);
+    card.onclick=()=>{toggleOverview();go(i)};
+    grid.appendChild(card);
+  });
+  ov.appendChild(grid);
+}
+
+function toggleOverview(){
+  overviewOn=!overviewOn;
+  if(overviewOn){buildOverview();ov.style.display='block';}
+  else{ov.style.display='none';}
+}
+
+addEventListener('keydown',e=>{
+  if(e.key==='Escape'){e.preventDefault();toggleOverview();return;}
+  if(overviewOn)return;
+  if(e.key==='ArrowRight'||e.key==='PageDown'||e.key===' '||e.key==='ArrowDown')go(idx+1);
+  if(e.key==='ArrowLeft'||e.key==='PageUp'||e.key==='ArrowUp')go(idx-1);
+  if(e.key==='Home')go(0);
+  if(e.key==='End')go(total-1);
+});
+
+let wheelTO=null,wheelAcc=0;
+addEventListener('wheel',e=>{
+  wheelAcc+=e.deltaY+e.deltaX;
+  if(Math.abs(wheelAcc)>50){go(idx+(wheelAcc>0?1:-1));wheelAcc=0;}
+  clearTimeout(wheelTO);wheelTO=setTimeout(()=>wheelAcc=0,150);
+},{passive:true});
+
+let tx=0,ty=0;
+addEventListener('touchstart',e=>{tx=e.touches[0].clientX;ty=e.touches[0].clientY},{passive:true});
+addEventListener('touchend',e=>{
+  const dx=(e.changedTouches[0].clientX-tx);
+  const dy=(e.changedTouches[0].clientY-ty);
+  if(Math.abs(dx)>50&&Math.abs(dx)>Math.abs(dy))go(idx+(dx<0?1:-1));
+},{passive:true});
+
+go(0);
+</script>
+<script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
+<script>lucide.createIcons();</script>
+</body>
+</html>
